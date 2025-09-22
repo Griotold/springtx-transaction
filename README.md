@@ -134,12 +134,62 @@ static class CallService {
 | **클래스 분리** | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | **⭐⭐⭐** |
 | Self-Injection | ⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐ |
 
+## 🚨 추가 주의사항
+
+### 메서드 가시성 제한
+- **@Transactional은 public 메서드에만 적용됩니다**
+- private, protected, package-private 메서드는 **어노테이션이 무시됩니다**
+- 컴파일 에러나 경고 없이 조용히 무시되므로 주의 필요
+
+```java
+@Slf4j
+static class CallService {
+    @Transactional
+    public void publicMethod() {
+        printTxInfo(); // ✅ 트랜잭션 적용됨
+    }
+    
+    @Transactional
+    private void privateMethod() {
+        printTxInfo(); // ❌ 트랜잭션 적용 안됨 (무시됨)
+    }
+}
+```
+
+### 초기화 메서드와 @Transactional
+- **@PostConstruct와 @Transactional을 함께 사용하면 트랜잭션이 적용되지 않습니다**
+- 초기화 시점에는 프록시가 완전히 준비되지 않았기 때문
+- **해결책**: `ApplicationReadyEvent` 사용
+
+```java
+@Slf4j
+static class Hello {
+    @PostConstruct
+    @Transactional
+    public void initV1() {
+        boolean isActive = TransactionSynchronizationManager.isActualTransactionActive();
+        log.info("Hello init @PostConstruct tx active={}", isActive); // ❌ false
+    }
+
+    @EventListener(value = ApplicationReadyEvent.class)
+    @Transactional
+    public void initV2() {
+        boolean isActive = TransactionSynchronizationManager.isActualTransactionActive();
+        log.info("Hello init ApplicationReadyEvent tx active={}", isActive); // ✅ true
+    }
+}
+```
+
+**이유**: Spring은 빈 생성 → 의존성 주입 → @PostConstruct → 프록시 생성 순서로 동작하므로, @PostConstruct 시점에는 아직 트랜잭션 프록시가 준비되지 않습니다.
+
 ## 🔑 핵심 포인트
 
 1. **Spring AOP는 프록시 기반**으로 동작
 2. **같은 객체 내부 메서드 호출**은 프록시를 우회
-3. **별도 클래스 분리**가 가장 깔끔한 해결책
-4. 트랜잭션 경계를 명확히 설계하는 것이 중요
+3. **public 메서드에만** @Transactional 적용 가능
+4. **초기화 시점**에는 @Transactional이 동작하지 않음
+5. **별도 클래스 분리**가 가장 깔끔한 해결책
+6. 트랜잭션 경계를 명확히 설계하는 것이 중요
 
 ## 📁 프로젝트 구조
 ```
