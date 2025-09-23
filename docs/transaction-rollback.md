@@ -10,6 +10,7 @@ Spring은 예외 종류에 따라 서로 다른 롤백 정책을 가집니다:
 - **✅ 롤백되는 예외**: `RuntimeException`과 그 하위 예외들, `Error`와 그 하위 예외들
 - **❌ 롤백되지 않는 예외**: `Exception`과 그 하위 예외들 (단, RuntimeException 제외)
 
+- 스프링은 기본적으로 체크 예외는 비즈니스 의미가 있을 때 사용하고, 런타임 예외는 복구 불가능한 예외로 가정한다
 ### 📋 기본 동작 확인
 
 #### 1) RuntimeException - 자동 롤백
@@ -86,6 +87,12 @@ public void noRollbackExample() {
 - `RollbackTest.java`: 롤백 규칙 동작 확인 테스트
 
 ---
+
+## 체크드 예외는 왜 커밋이 될까?
+- order 패키지에 있는 내용 OrderServiceTest 확인하기
+
+### 🔗 관련 테스트 코드
+- `OrderServiceTest.java`: 롤백 규칙 동작 확인 테스트
 
 💡 **핵심 포인트**: 
 - 기본적으로 RuntimeException만 롤백됨
