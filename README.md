@@ -19,7 +19,10 @@ Spring Framework의 `@Transactional` 어노테이션과 AOP 프록시 메커니�
   - 실무 활용 팁과 예제
 
 ### 3. 트랜잭션 전파
-- 트랜잭션 전파 (Propagation)
+- **[트랜잭션 전파 (Propagation)](./docs/transaction-propagation.md)**
+  - 트랜잭션 전파의 개념과 종류
+  - REQUIRED, REQUIRES_NEW, NESTED 등 각 전파 옵션의 동작 방식
+  - 실무에서의 트랜잭션 전파 활용 사례
 
 
 ## 📁 프로젝트 구조
