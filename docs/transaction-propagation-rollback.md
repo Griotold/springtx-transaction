@@ -140,3 +140,28 @@ public class OrderService {
 ---
 
 ## 2. 내부 롤백
+- 기존 트랜잭션에 rollback-only를 마킹한다
+```
+내부 트랜잭션 롤백
+Participating transaction failed - marking existing transaction as rollback-only
+외부 트랜잭션 커밋
+Global transaction is marked as rollback-only but transactional code requested commit
+```
+- 내부 트랜잭션을 롤백하면 실제 물리 트랜잭션을 롤백하지 않는다.
+- 대신에 기존 트랜잭션을 롤백 전용으로 표시한다.
+- 핵심은 모든 논리 트랜잭션이 전부 커밋이어야 물리 트랜잭션도 커밋이 된다는 점이다.
+
+### UnexpectedRollbackException
+- 트랜잭션 매니저에서 예외를 발생시킨다.
+- 이것은 조용히 넘어갈 수 있는 문제가 아니다. 시스템입장에서는 커밋을 호출했지만 롤백이 되었단든 것은 분명하게 알려주어야 한다.
+- 스프링은 `UnexpectedRollbackException` 런타임 예외를 던진다.
+```
+org.springframework.transaction.UnexpectedRollbackException: Transaction rolled back because it has been marked as rollback-only
+
+	at org.springframework.transaction.support.AbstractPlatformTransactionManager.processRollback(AbstractPlatformTransactionManager.java:938)
+	at org.springframework.transaction.support.AbstractPlatformTransactionManager.commit(AbstractPlatformTransactionManager.java:754)
+	at hello.springtx.propagation.BasicTxTest.inner_rollback(BasicTxTest.java:118)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+```
